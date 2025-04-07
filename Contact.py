@@ -62,7 +62,7 @@ def parse_file(file_name):
                     name_result[1]=True
                 else:
                     name_result[1]=False
-                print(name_result)
+                # print(name_result)
                 key=name_result[0].strip()
                 value=name_result[1]
                 dict_results[key]=value # Add the values
@@ -321,7 +321,7 @@ def main():
        you do so for debugging purposes that's ok if you later change 
        it back...)
     """
-    filename = "DataSet1.txt"
+    filename = "DataSet2.txt"
     # Get the file name from the command line or ask the user for a file name
     # args = sys.argv[1:]
     # if len(args) == 0:
