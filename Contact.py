@@ -196,7 +196,7 @@ def update_vk_with_vampires_forward(vk_pre, vk_post):
     """To do check errors"""
     # Update the test results of the vampire to next day
     for key in vk_pre:
-        if vk_pre[key]=='V' and vk_post[key]!='V':
+        if vk_pre[key]=='V' and vk_post[key]=='H':
             print("Error found in data: vampires cannot be humans; aborting.")
             sys.exit()
         if vk_pre[key]=='V':
@@ -209,7 +209,7 @@ def update_vk_with_humans_backward(vk_pre, vk_post):
     """To do check errors"""
     # Update the test results of the human to previvious day 
     for key in vk_post:
-        if vk_post=='H' and vk_pre!='H':
+        if vk_post[key]=='H' and vk_pre[key]=='V':
             print("Error found in data: humans cannot be vampires; aborting.")
             sys.exit()
         if vk_post[key]=='H':
@@ -321,23 +321,23 @@ def main():
        you do so for debugging purposes that's ok if you later change 
        it back...)
     """
-    filename = "DataSet2.txt"
+    filename = ""
     # Get the file name from the command line or ask the user for a file name
-    # args = sys.argv[1:]
-    # if len(args) == 0:
-    #     filename = input("Please enter the name of the file: ")
-    # elif len(args) == 1:
-    #     filename = args[0]
-    # else:
-    #     print("""\n\nUsage\n\tTo run the program type:
-    #     \tpython contact.py infile
-    #     where infile is the name of the file containing the data.\n""")
-    #     sys.exit()
+    args = sys.argv[1:]
+    if len(args) == 0:
+         filename = input("Please enter the name of the file: ")
+    elif len(args) == 1:
+         filename = args[0]
+    else:
+         print("""\n\nUsage\n\tTo run the program type:
+         \tpython contact.py infile
+         where infile is the name of the file containing the data.\n""")
+         sys.exit()
 
-    # # Section 2. Check that the file exists
-    # if not file_exists(filename):
-    #     print("File does not exist, ending program.")
-    #     sys.exit()
+ # Section 2. Check that the file exists
+    if not file_exists(filename):
+         print("File does not exist, ending program.")
+         sys.exit()
 
     # Section 3. Create contacts dictionary from the file
     #Complete function parse_file().
@@ -349,7 +349,7 @@ def main():
 
     # Section 4. Print contact records
     pretty_print_infiltration_data(data)
-"""
+
     # Section 5. Create helper function for time analysis.
     print("********\nSection 5: Lookup helper function")
     if len(participants) == 0:
@@ -389,7 +389,7 @@ def main():
     for t in range(len(vks)-1, 0, -1):
         vks[t-1] = update_vk_with_humans_backward(vks[t-1],vks[t])
     pretty_print_vks(vks)
-
+"""
     # Sections 10 and 11.  Update the VKs to account for contact groups and safety at night.
     print("********\nSections 10 and 11: update the vampire knowledge tables by forward propagation of contact results and overnight")
     for t in range(1, len(vks), 2):
