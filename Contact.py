@@ -219,8 +219,15 @@ def update_vk_with_humans_backward(vk_pre, vk_post):
 # Section 10
 def update_vk_overnight(vk_pre, vk_post):
     """ Your comments here """
-
-    return vk_post
+    for key in vk_pre:
+        if (vk_pre[key]=='H' and vk_post[key]=='V') or (vk_pre[key]=='V' and vk_post[key]=='H'):
+            print("Error found in data: humans cannot be vampires; aborting.")
+            sys.exit()
+        if vk_post[key]=='H':
+            vk_pre[key]='H'
+        if vk_pre[key]=='V':
+            vk_post[key]='V'
+    return vk_pre
 
 # Section 11
 def update_vk_with_contact_group(vk_pre, contacts, vk_post):
@@ -389,7 +396,7 @@ def main():
     for t in range(len(vks)-1, 0, -1):
         vks[t-1] = update_vk_with_humans_backward(vks[t-1],vks[t])
     pretty_print_vks(vks)
-"""
+
     # Sections 10 and 11.  Update the VKs to account for contact groups and safety at night.
     print("********\nSections 10 and 11: update the vampire knowledge tables by forward propagation of contact results and overnight")
     for t in range(1, len(vks), 2):
