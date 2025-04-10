@@ -268,62 +268,65 @@ def update_vk_with_contact_group(vk_pre, contacts, vk_post):
 
 # Section 12
 def find_infection_windows(vks):
-    """
-    Identifies the infection time windows for each vampire in the data.
+    """Find infection windows for vampires.
     
-    Parameters:
-        vks (list): List of vampire knowledge structures across all time units
+    Args:
+        vks: List of vampire knowledge structures
         
     Returns:
-        dict: Infection windows {vampire: (start_time, end_time)}
+        Dictionary mapping vampires to their infection windows (start_time, end_time)
     """
     infection_windows = {}
     
-    # First identify all final vampires (from last time unit)
+    # Find all vampires from the last time unit
     last_vk = vks[-1]
-    vampires = [name for name, status in last_vk.items() if status == "V"]
+    vampires = [name for name, status in last_vk.items() if status == 'V']
     
     for vampire in vampires:
-        # Find first time vampire is confirmed (end of window)
+        # Find the first time the vampire is confirmed (end of window)
         end_time = None
         for t in range(len(vks)):
-            if vks[t].get(vampire) == "V":
+            if vks[t][vampire] == 'V':
                 end_time = t
                 break
         
-        # Find last time before end_time where vampire was human (start of window)
+        # Find the last confirmed human state before becoming a vampire
         start_time = 0  # Default to beginning if never confirmed human
         for t in range(end_time - 1, -1, -1):
-            if vks[t].get(vampire) == "H":
-                start_time = t + 1  # Infection happens after last human confirmation
-                break
+            if vks[t][vampire] == 'H':
+                # If we find them human in AM, they could be turned that AM
+                if period_of_time(t):
+                    start_time = t
+                    break
+                # If we find them human in PM, they could be turned next AM
+                else:
+                    start_time = t + 2  # Skip to next day's AM
+                    break
         
         infection_windows[vampire] = (start_time, end_time)
     
     return infection_windows
 
 def pretty_print_infection_windows(iw):
-    """
-    Prints the infection windows in the required format.
+    """Print infection windows in a formatted way.
     
-    Parameters:
-        iw (dict): Infection windows dictionary from find_infection_windows()
+    Args:
+        iw: Dictionary mapping vampires to their infection windows
     """
-    # Sort vampires alphabetically
     for vampire in sorted(iw.keys()):
-        start, end = iw[vampire]
+        start_time, end_time = iw[vampire]
         
-        # Format start time description
-        if start == 0:
+        # Format start time
+        if start_time == 0:
             start_str = "day 0"
         else:
-            start_day = day_of_time(start)
-            start_period = 'AM' if period_of_time(start) == True else 'PM'
+            start_day = day_of_time(start_time)
+            start_period = 'AM' if period_of_time(start_time) else 'PM'
             start_str = f"day {start_day} ({start_period})"
         
-        # Format end time description
-        end_day = day_of_time(end)
-        end_period = 'AM' if period_of_time(end) == True else 'PM'
+        # Format end time
+        end_day = day_of_time(end_time)
+        end_period = 'AM' if period_of_time(end_time) else 'PM'
         end_str = f"day {end_day} ({end_period})"
         
         print(f"  {vampire} was turned between {start_str} and {end_str}.")
