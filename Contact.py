@@ -232,8 +232,6 @@ def update_vk_overnight(vk_pre, vk_post):
 # Section 11
 def update_vk_with_contact_group(vk_pre, contacts, vk_post):
     """ Your comments here """
-    def update_vk_with_contact_group(vk_pre, contacts, vk_post):
-    """ To do errors"""
     name_contacts=[]
     # Extract all participants in contacts
     for i in range(len(contacts)):
@@ -261,7 +259,6 @@ def update_vk_with_contact_group(vk_pre, contacts, vk_post):
 def find_infection_windows(vks):
     """ Your comments here """
     windows = {}
-      windows = {} 
     list_vampire=[] # Create list of vampire at last day
     final_vk=vks[len(vks)-1] # The last vk
     # Find the list of vampire at last day
@@ -518,6 +515,6 @@ def main():
     pretty_print_sire_sets(ss,iw,u,False)
     pretty_print_sire_sets(ss,iw,n,True)
     pretty_print_vks(vks)       
-"""
+
 if __name__ == "__main__":
     main()
