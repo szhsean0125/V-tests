@@ -155,9 +155,9 @@ def pretty_print_vampire_knowledge(vk):
             list_human.append(name.strip())
         else:
             list_vampire.append(name.strip())
-    print(f"Humans: {format_list(sorted(list_human))}")
-    print(f"Unclear indiciduals: {format_list(sorted(list_unclear))}")
-    print(f"Vampires: {format_list(sorted(list_vampire))}")    
+    print(f"  Humans: {format_list(sorted(list_human))}")
+    print(f"  Unclear individuals: {format_list(sorted(list_unclear))}")
+    print(f"  Vampires: {format_list(sorted(list_vampire))}")    
     return
 
  #Done by professors
@@ -218,16 +218,27 @@ def update_vk_with_humans_backward(vk_pre, vk_post):
 
 # Section 10
 def update_vk_overnight(vk_pre, vk_post):
-    """ Your comments here """
-    for key in vk_pre:
-        if (vk_pre[key]=='H' and vk_post[key]=='V') or (vk_pre[key]=='V' and vk_post[key]=='H'):
+    for participant in vk_pre:
+        # Error Case 1: Human in PM but vampire in next AM (impossible)
+        if vk_pre[participant] == 'H' and vk_post[participant] == 'V':
             print("Error found in data: humans cannot be vampires; aborting.")
             sys.exit()
-        if vk_post[key]=='H':
-            vk_pre[key]='H'
-        if vk_pre[key]=='V':
-            vk_post[key]='V'
-    return vk_pre
+        
+        # Error Case 2: Vampire in PM but human in next AM (impossible)
+        if vk_pre[participant] == 'V' and vk_post[participant] == 'H':
+            print("Error found in data: vampires cannot be humans; aborting.")
+            sys.exit()
+        
+        # Safe Propagation Rules:
+        # 1. Humans in PM must remain human in next AM
+        if vk_pre[participant] == 'H' and vk_post[participant] == 'U':
+            vk_post[participant] = 'H'
+        
+        # 2. Vampires in PM must remain vampire in next AM
+        if vk_pre[participant] == 'V' and vk_post[participant] == 'U':
+            vk_post[participant] = 'V'
+    
+    return vk_post
 
 # Section 11
 def update_vk_with_contact_group(vk_pre, contacts, vk_post):
@@ -257,31 +268,65 @@ def update_vk_with_contact_group(vk_pre, contacts, vk_post):
 
 # Section 12
 def find_infection_windows(vks):
-    """ Your comments here """
-    windows = {}
-    list_vampire=[] # Create list of vampire at last day
-    final_vk=vks[len(vks)-1] # The last vk
-    # Find the list of vampire at last day
-    for key in final_vk:
-        if final_vk[key]=='V':
-            list_vampire.append(key)
-    # Give the upper and lower limits of windows
-    for key in list_vampire:
-        windows[key]=[0,len(vks)-1]
-    # Fist day and last day of human
-    for i in range(len(vks)):
-        for key in list_vampire:
-            if vks[i][key]=='H':
-                windows[key]=[i,len(vks)-1]
-        for k in range(len(vks)-1,0):
-            for key in list_vampire:
-                if vks[k][key]=='V':
-                    windows[key]=[i,k]
-    return windows
+    """
+    Identifies the infection time windows for each vampire in the data.
+    
+    Parameters:
+        vks (list): List of vampire knowledge structures across all time units
+        
+    Returns:
+        dict: Infection windows {vampire: (start_time, end_time)}
+    """
+    infection_windows = {}
+    
+    # First identify all final vampires (from last time unit)
+    last_vk = vks[-1]
+    vampires = [name for name, status in last_vk.items() if status == "V"]
+    
+    for vampire in vampires:
+        # Find first time vampire is confirmed (end of window)
+        end_time = None
+        for t in range(len(vks)):
+            if vks[t].get(vampire) == "V":
+                end_time = t
+                break
+        
+        # Find last time before end_time where vampire was human (start of window)
+        start_time = 0  # Default to beginning if never confirmed human
+        for t in range(end_time - 1, -1, -1):
+            if vks[t].get(vampire) == "H":
+                start_time = t + 1  # Infection happens after last human confirmation
+                break
+        
+        infection_windows[vampire] = (start_time, end_time)
+    
+    return infection_windows
 
 def pretty_print_infection_windows(iw):
-    """ Your comments here """
-    pass
+    """
+    Prints the infection windows in the required format.
+    
+    Parameters:
+        iw (dict): Infection windows dictionary from find_infection_windows()
+    """
+    # Sort vampires alphabetically
+    for vampire in sorted(iw.keys()):
+        start, end = iw[vampire]
+        
+        # Format start time description
+        if start == 0:
+            start_str = "day 0"
+        else:
+            start_day = day_of_time(start)
+            start_period = 'AM' if period_of_time(start) == True else 'PM'
+            start_str = f"day {start_day} ({start_period})"
+        
+        # Format end time description
+        end_day = day_of_time(end)
+        end_period = 'AM' if period_of_time(end) == True else 'PM'
+        end_str = f"day {end_day} ({end_period})"
+        
+        print(f"  {vampire} was turned between {start_str} and {end_str}.")
 
 # Section 13
 def find_potential_sires(iw, groups):
@@ -449,72 +494,72 @@ def main():
     iw = find_infection_windows(vks)
     pretty_print_infection_windows(iw)
 
-    # Section 13. Find possible vampire sires.
-    print("********\nSection 13: Find possible vampire sires")
-    ps = find_potential_sires(iw, groups_by_day)
-    pretty_print_potential_sires(ps)
+    # # Section 13. Find possible vampire sires.
+    # print("********\nSection 13: Find possible vampire sires")
+    # ps = find_potential_sires(iw, groups_by_day)
+    # pretty_print_potential_sires(ps)
 
-    # Section 14. Trim the potential sire structure.
-    print("********\nSection 14: Trim potential sire structure")
-    ps = trim_potential_sires(ps,vks)
-    pretty_print_potential_sires(ps)
+    # # Section 14. Trim the potential sire structure.
+    # print("********\nSection 14: Trim potential sire structure")
+    # ps = trim_potential_sires(ps,vks)
+    # pretty_print_potential_sires(ps)
 
-    # Section 15. Trim the infection windows.
-    print("********\nSection 15: Trim infection windows")
-    iw = trim_infection_windows(iw,ps)
-    pretty_print_infection_windows(iw)
+    # # Section 15. Trim the infection windows.
+    # print("********\nSection 15: Trim infection windows")
+    # iw = trim_infection_windows(iw,ps)
+    # pretty_print_infection_windows(iw)
 
-    # Section 16. Update the vk structures with infection windows.
-    print("********\nSection 16: Update vampire information tables with infection window data")
-    (vks,changes) = update_vks_with_windows(vks,iw)
-    pretty_print_vks(vks)
-    str_s = "" if changes == 1 else "s"
-    print(f'({changes} change{str_s})')
+    # # Section 16. Update the vk structures with infection windows.
+    # print("********\nSection 16: Update vampire information tables with infection window data")
+    # (vks,changes) = update_vks_with_windows(vks,iw)
+    # pretty_print_vks(vks)
+    # str_s = "" if changes == 1 else "s"
+    # print(f'({changes} change{str_s})')
 
-    # Section 17.  Cyclic analysis for sections 14-16 
-    print("********\nSection 17: Cyclic analysis for sections 14-16")
-    vks,iw,ps,count = cyclic_analysis(vks,iw,ps)
-    str_s = "" if count == 1 else "s"    
-    print(f'Detected fixed point after {count} iteration{str_s}.')
-    print('Potential sires:')
-    pretty_print_potential_sires(ps)
-    print('Infection windows:')
-    pretty_print_infection_windows(iw)
-    pretty_print_vks(vks)       
+    # # Section 17.  Cyclic analysis for sections 14-16 
+    # print("********\nSection 17: Cyclic analysis for sections 14-16")
+    # vks,iw,ps,count = cyclic_analysis(vks,iw,ps)
+    # str_s = "" if count == 1 else "s"    
+    # print(f'Detected fixed point after {count} iteration{str_s}.')
+    # print('Potential sires:')
+    # pretty_print_potential_sires(ps)
+    # print('Infection windows:')
+    # pretty_print_infection_windows(iw)
+    # pretty_print_vks(vks)       
 
-    # Section 18.  Calculate vampire strata
-    print("********\nSection 18: Calculate vampire strata")
-    (origs,unkns,newbs) = vampire_strata(iw)
-    pretty_print_vampire_strata(origs,unkns,newbs)
+    # # Section 18.  Calculate vampire strata
+    # print("********\nSection 18: Calculate vampire strata")
+    # (origs,unkns,newbs) = vampire_strata(iw)
+    # pretty_print_vampire_strata(origs,unkns,newbs)
 
-    # Section 19.  Calculate definite sires
-    print("********\nSection 19: Calculate definite vampire sires")
-    ss = calculate_sire_sets(ps)
-    pretty_print_sire_sets(ss,iw,unkns,False)
-    pretty_print_sire_sets(ss,iw,newbs,True)    
+    # # Section 19.  Calculate definite sires
+    # print("********\nSection 19: Calculate definite vampire sires")
+    # ss = calculate_sire_sets(ps)
+    # pretty_print_sire_sets(ss,iw,unkns,False)
+    # pretty_print_sire_sets(ss,iw,newbs,True)    
 
-    # Section 20.  Find hidden vampires
-    print("********\nSection 20: Find hidden vampires")
-    (vks, changes) = find_hidden_vampires(ss,iw,newbs,vks)
-    pretty_print_vks(vks)           
-    str_s = "" if changes == 1 else "s"
-    print(f'({changes} change{str_s})')
+    # # Section 20.  Find hidden vampires
+    # print("********\nSection 20: Find hidden vampires")
+    # (vks, changes) = find_hidden_vampires(ss,iw,newbs,vks)
+    # pretty_print_vks(vks)           
+    # str_s = "" if changes == 1 else "s"
+    # print(f'({changes} change{str_s})')
 
-    # Section 21.  Cyclic analysis for sections 14-20
-    print("********\nSection 21: Cyclic analysis for sections 14-20")
-    (vks,iw,ps,ss,o,u,n,count) = cyclic_analysis2(vks,groups_by_day)
-    str_s = "" if count == 1 else "s"    
-    print(f'Detected fixed point after {count} iteration{str_s}.')
-    print("Infection windows:")
-    pretty_print_infection_windows(iw)
-    print("Vampire potential sires:")
-    pretty_print_potential_sires(ps)
-    print("Vampire strata:")
-    pretty_print_vampire_strata(o,u,n)
-    print("Vampire sire sets:")    
-    pretty_print_sire_sets(ss,iw,u,False)
-    pretty_print_sire_sets(ss,iw,n,True)
-    pretty_print_vks(vks)       
+    # # Section 21.  Cyclic analysis for sections 14-20
+    # print("********\nSection 21: Cyclic analysis for sections 14-20")
+    # (vks,iw,ps,ss,o,u,n,count) = cyclic_analysis2(vks,groups_by_day)
+    # str_s = "" if count == 1 else "s"    
+    # print(f'Detected fixed point after {count} iteration{str_s}.')
+    # print("Infection windows:")
+    # pretty_print_infection_windows(iw)
+    # print("Vampire potential sires:")
+    # pretty_print_potential_sires(ps)
+    # print("Vampire strata:")
+    # pretty_print_vampire_strata(o,u,n)
+    # print("Vampire sire sets:")    
+    # pretty_print_sire_sets(ss,iw,u,False)
+    # pretty_print_sire_sets(ss,iw,n,True)
+    # pretty_print_vks(vks)       
 
 if __name__ == "__main__":
     main()
