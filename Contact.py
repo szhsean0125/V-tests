@@ -232,12 +232,54 @@ def update_vk_overnight(vk_pre, vk_post):
 # Section 11
 def update_vk_with_contact_group(vk_pre, contacts, vk_post):
     """ Your comments here """
+    def update_vk_with_contact_group(vk_pre, contacts, vk_post):
+    """ To do errors"""
+    name_contacts=[]
+    # Extract all participants in contacts
+    for i in range(len(contacts)):
+        name_contacts.extend(contacts[i])
+    # Check none-participants in contacts groups and update their states
+    for key in vk_pre:
+        if key not in name_contacts:
+            if vk_pre[key]=='H':
+                vk_post[key]='H'
+    # Split contacts into groups
+    for k in range(len(contacts)):
+        names=contacts[k]
+        is_all_human=True 
+        # Find states of all participants in the group
+        for key in contacts[k]:
+            value=vk_pre[key]
+            if value!='H': # If not all of participants are human return False
+                is_all_human=False
+        if is_all_human==True: # If all human update the states of all participants
+            for key in contacts[k]:
+                vk_post[key]='H'
     return vk_post
 
 # Section 12
 def find_infection_windows(vks):
     """ Your comments here """
     windows = {}
+      windows = {} 
+    list_vampire=[] # Create list of vampire at last day
+    final_vk=vks[len(vks)-1] # The last vk
+    # Find the list of vampire at last day
+    for key in final_vk:
+        if final_vk[key]=='V':
+            list_vampire.append(key)
+    # Give the upper and lower limits of windows
+    for key in list_vampire:
+        windows[key]=[0,len(vks)-1]
+    # Fist day and last day of human
+    for i in range(len(vks)):
+        for key in list_vampire:
+            if vks[i][key]=='H':
+                windows[key]=[i,len(vks)-1]
+        for k in range(len(vks)-1,0):
+            for key in list_vampire:
+                if vks[k][key]=='V':
+                    windows[key]=[i,k]
     return windows
 
 def pretty_print_infection_windows(iw):
