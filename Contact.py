@@ -247,6 +247,13 @@ def update_vk_with_contact_group(vk_pre, contacts, vk_post):
     # Extract all participants in contacts
     for i in range(len(contacts)):
         name_contacts.extend(contacts[i])
+    
+    # Check for non-participants in contact groups
+    for person in name_contacts:
+        if person not in vk_pre:
+            print("Error found in data: contact subject is not a participant; aborting.")
+            sys.exit()
+    
     # Check none-participants in contacts groups and update their states
     for key in vk_pre:
         if key not in name_contacts:
