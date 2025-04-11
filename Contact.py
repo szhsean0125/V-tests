@@ -477,15 +477,24 @@ def cyclic_analysis(vks,iw,ps):
 
 # Section 18: vampire strata
 def vampire_strata(iw):
-    """ Your comments here """
     originals = set()
     unclear_vamps = set()
     newborns = set()
-    return (originals,unclear_vamps,newborns)
- 
+    
+    for vampire, (start, end) in iw.items():
+        if start == 0 and end == 0:
+            originals.add(vampire)
+        elif end - start > 1 or (end - start == 1 and start != 0):
+            unclear_vamps.add(vampire)
+        else:
+            newborns.add(vampire)
+    
+    return (originals, unclear_vamps, newborns)
+
 def pretty_print_vampire_strata(originals, unclear_vamps, newborns):
-    """ Your comments here """
-    pass
+    print("  Original vampires:", format_list(sorted(originals)))
+    print("  Unknown strata vampires:", format_list(sorted(unclear_vamps)))
+    print("  Newborn vampires:", format_list(sorted(newborns)))
 
 # Section 19: vampire sire sets
 def calculate_sire_sets(ps):
@@ -626,21 +635,21 @@ def main():
     str_s = "" if changes == 1 else "s"
     print(f'({changes} change{str_s})')
 
-    # # Section 17.  Cyclic analysis for sections 14-16 
-    # print("********\nSection 17: Cyclic analysis for sections 14-16")
-    # vks,iw,ps,count = cyclic_analysis(vks,iw,ps)
-    # str_s = "" if count == 1 else "s"    
-    # print(f'Detected fixed point after {count} iteration{str_s}.')
-    # print('Potential sires:')
-    # pretty_print_potential_sires(ps)
-    # print('Infection windows:')
-    # pretty_print_infection_windows(iw)
-    # pretty_print_vks(vks)       
+    # Section 17.  Cyclic analysis for sections 14-16 
+    print("********\nSection 17: Cyclic analysis for sections 14-16")
+    vks,iw,ps,count = cyclic_analysis(vks,iw,ps)
+    str_s = "" if count == 1 else "s"    
+    print(f'Detected fixed point after {count} iteration{str_s}.')
+    print('Potential sires:')
+    pretty_print_potential_sires(ps)
+    print('Infection windows:')
+    pretty_print_infection_windows(iw)
+    pretty_print_vks(vks)       
 
-    # # Section 18.  Calculate vampire strata
-    # print("********\nSection 18: Calculate vampire strata")
-    # (origs,unkns,newbs) = vampire_strata(iw)
-    # pretty_print_vampire_strata(origs,unkns,newbs)
+    # Section 18.  Calculate vampire strata
+    print("********\nSection 18: Calculate vampire strata")
+    (origs,unkns,newbs) = vampire_strata(iw)
+    pretty_print_vampire_strata(origs,unkns,newbs)
 
     # # Section 19.  Calculate definite sires
     # print("********\nSection 19: Calculate definite vampire sires")
