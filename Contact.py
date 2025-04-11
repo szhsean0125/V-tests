@@ -484,9 +484,9 @@ def vampire_strata(iw):
     for vampire, (start, end) in iw.items():
         if start == 0 and end == 0:
             originals.add(vampire)
-        elif end - start > 1 or (end - start == 1 and start != 0):
+        elif start == 0:  # If it starts at 0 but doesn't end at 0, it's unclear
             unclear_vamps.add(vampire)
-        else:
+        else:  # If it starts after 0, it's a newborn
             newborns.add(vampire)
     
     return (originals, unclear_vamps, newborns)
