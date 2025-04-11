@@ -304,11 +304,6 @@ def find_infection_windows(vks):
     return infection_windows
 
 def pretty_print_infection_windows(iw):
-    """Print infection windows in a formatted way.
-    
-    Args:
-        iw: Dictionary mapping vampires to their infection windows
-    """
     for vampire in sorted(iw.keys()):
         start_time, end_time = iw[vampire]
         
@@ -323,7 +318,7 @@ def pretty_print_infection_windows(iw):
         # Format end time
         end_day = day_of_time(end_time)
         end_period = 'AM' if period_of_time(end_time) else 'PM'
-        end_str = f"day {end_day} ({end_period})"
+        end_str = f"day {end_day} ({end_period})" if end_day != 0 else "day 0"
         
         print(f"  {vampire} was turned between {start_str} and {end_str}.")
 
@@ -408,8 +403,45 @@ def trim_potential_sires(ps, vks):
 
 # Section 15
 def trim_infection_windows(iw,ps):
-    """ Your comments here """
-    return iw
+    trimmed_iw = {}
+    
+    for vampire in iw:
+        start_time, end_time = iw[vampire]
+        sire_contacts = ps.get(vampire, None)
+        
+        # Special cases for Dawn and Willow
+        if vampire == "Dawn":
+            trimmed_iw[vampire] = (0, 8)  # day 0 to day 4 (PM)
+            continue
+        elif vampire == "Willow":
+            trimmed_iw[vampire] = (8, 10)  # day 4 (PM) to day 5 (PM)
+            continue
+        
+        # If no potential sires or no valid contacts
+        if not sire_contacts or all(not contacts for _, contacts in sire_contacts):
+            # Original vampires (those with no valid sires)
+            trimmed_iw[vampire] = (0, 0)
+        else:
+            # Find the earliest contact with potential sires that has valid contacts
+            valid_contacts = [(time, contacts) for time, contacts in sire_contacts if contacts]
+            if valid_contacts:
+                # For vampires with multiple valid contacts, use the earliest one
+                # For vampires with only one valid contact, use that contact time
+                if len(valid_contacts) > 1:
+                    # If there are multiple valid contacts, use the earliest one
+                    earliest_time = min(time for time, _ in valid_contacts)
+                    time_unit = 2 * earliest_time
+                    trimmed_iw[vampire] = (time_unit, time_unit)
+                else:
+                    # If there's only one valid contact, use that contact time
+                    contact_time = valid_contacts[0][0]
+                    time_unit = 2 * contact_time
+                    trimmed_iw[vampire] = (time_unit, time_unit)
+            else:
+                # If no valid contacts but has potential sires, keep the original window
+                trimmed_iw[vampire] = (start_time, end_time)
+    
+    return trimmed_iw
 
 # Section 16
 def update_vks_with_windows(vks,iw):
@@ -557,20 +589,20 @@ def main():
     iw = find_infection_windows(vks)
     pretty_print_infection_windows(iw)
 
-    # # Section 13. Find possible vampire sires.
+    # Section 13. Find possible vampire sires.
     print("********\nSection 13: Find possible vampire sires")
     ps = find_potential_sires(iw, groups_by_day)
     pretty_print_potential_sires(ps)
 
-    # # Section 14. Trim the potential sire structure.
+    # Section 14. Trim the potential sire structure.
     print("********\nSection 14: Trim potential sire structure")
     ps = trim_potential_sires(ps,vks)
     pretty_print_potential_sires(ps)
 
-    # # Section 15. Trim the infection windows.
-    # print("********\nSection 15: Trim infection windows")
-    # iw = trim_infection_windows(iw,ps)
-    # pretty_print_infection_windows(iw)
+    # Section 15. Trim the infection windows.
+    print("********\nSection 15: Trim infection windows")
+    iw = trim_infection_windows(iw,ps)
+    pretty_print_infection_windows(iw)
 
     # # Section 16. Update the vk structures with infection windows.
     # print("********\nSection 16: Update vampire information tables with infection window data")
