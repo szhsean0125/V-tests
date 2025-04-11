@@ -355,19 +355,20 @@ def find_potential_sires(iw, groups):
     return sires
 
 def pretty_print_potential_sires(ps):
+    # Find contactors
     for vampire in sorted(ps.keys()):
         print(f"  {vampire}:")
-        # If no potential sires, print (None)
+        # If no contacts
         if not ps[vampire]:
             print("    (None)")
             continue
-        # Print each potential sire contact
+        # Print each contact
         for contact in ps[vampire]:
             day = contact[0]
             group = contact[1]
-            # Format the group members (including the vampire)
+            # Format the contact members
             group_str = format_list(group)
-            # Format the output string
+            #
             if group:
                 print(f"    On day {day} (PM), met with {group_str}.")
             else:
@@ -377,30 +378,30 @@ def pretty_print_potential_sires(ps):
 def trim_potential_sires(ps, vks):
     trimmed_ps = {}
     
+    # If there is no coontact with vampire
     for vampire in ps:
         original_entries = ps[vampire]
-        if not original_entries:  # Skip if no contacts
+        if not original_entries:  
             trimmed_ps[vampire] = None
             continue
         
         new_entries = []
         for time, contacts in original_entries:
-            # Convert time from day number to time unit index (2*day for PM)
-            time_unit = 2 * time  # PM of the day
+            # Convert time to time unit
+            time_unit = 2 * time
             
-            # Filter contacts based on their status at that time
+            # Filter contactors 
             filtered = []
             for p in contacts:
                 if p != vampire:  # Remove the vampire itself
                     status = vks[time_unit].get(p, 'U')
-                    # Keep contacts that are not definitely human
+                    # Remain contactors that are unclear indivituals
                     if status != 'H':
                         filtered.append(p)
             
             if filtered:  # Only add non-empty groups
                 new_entries.append((time, filtered))
         
-        # Assign 'None' if all entries were trimmed
         trimmed_ps[vampire] = new_entries if new_entries else None
     
     return trimmed_ps
