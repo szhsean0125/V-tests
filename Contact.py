@@ -283,7 +283,7 @@ def find_infection_windows(vks):
     Returns:
         Dictionary mapping vampires to their infection windows (start_time, end_time)
     """
-    infection_windows = {}
+    infection_windows={}
     
     # Find all vampires from the last time unit
     last_vk = vks[-1]
@@ -342,10 +342,38 @@ def pretty_print_infection_windows(iw):
 def find_potential_sires(iw, groups):
     """ Your comments here """
     sires = {}
+    # Extrat vampire names
+    for name in sorted(iw.keys()):
+       interval=iw[name]
+       sires[name]=[] # Creat a dictionary for vampire sires
+       # Find the day of contact
+       for i in range(interval[0],interval[1]):
+           # There are no contacts in day 0
+           if i ==0:
+               continue
+           # The contacts only happend in PM
+           if i%2==0:
+                name_found=False # Check if the name is found in group
+                # Check all groups for the day
+                for group in groups[day_of_time(i)-1]:
+                    # There is a contact with vampire
+                    if name in group:
+                        sires[name].append([day_of_time(i),group]) # This should be fine as long as the contacts are unique per day
+                        name_found=True
+                # There is no contact for the vampire
+                if name_found==False:
+                     sires[name].append([day_of_time(i),[]])
     return sires
 
 def pretty_print_potential_sires(ps):
     """ Your comments here """
+    for key in sorted(ps.keys()):
+        contact_day=ps[key][0]
+        dayily_contactors=list(ps[key][2])
+        for i in range(len(dayily_contactors)):
+            contactor_name=dayily_contactors[i]
+            if len(dayily_contactors)>0:
+                print(f"  ")
     pass
 
 # Section 14
