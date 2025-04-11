@@ -366,15 +366,23 @@ def find_potential_sires(iw, groups):
     return sires
 
 def pretty_print_potential_sires(ps):
-    """ Your comments here """
-    for key in sorted(ps.keys()):
-        contact_day=ps[key][0]
-        dayily_contactors=list(ps[key][2])
-        for i in range(len(dayily_contactors)):
-            contactor_name=dayily_contactors[i]
-            if len(dayily_contactors)>0:
-                print(f"  ")
-    pass
+    for vampire in sorted(ps.keys()):
+        print(f"  {vampire}:")
+        # If no potential sires, print (None)
+        if not ps[vampire]:
+            print("    (None)")
+            continue
+        # Print each potential sire contact
+        for contact in ps[vampire]:
+            day = contact[0]
+            group = contact[1]
+            # Format the group members (including the vampire)
+            group_str = format_list(group)
+            # Format the output string
+            if group:
+                print(f"    On day {day} (PM), met with {group_str}.")
+            else:
+                print(f"    On day {day} (PM), met with (None).")
 
 # Section 14
 def trim_potential_sires(ps,vks):
@@ -533,9 +541,9 @@ def main():
     pretty_print_infection_windows(iw)
 
     # # Section 13. Find possible vampire sires.
-    # print("********\nSection 13: Find possible vampire sires")
-    # ps = find_potential_sires(iw, groups_by_day)
-    # pretty_print_potential_sires(ps)
+    print("********\nSection 13: Find possible vampire sires")
+    ps = find_potential_sires(iw, groups_by_day)
+    pretty_print_potential_sires(ps)
 
     # # Section 14. Trim the potential sire structure.
     # print("********\nSection 14: Trim potential sire structure")
