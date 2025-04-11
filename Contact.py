@@ -374,9 +374,36 @@ def pretty_print_potential_sires(ps):
                 print(f"    On day {day} (PM), met with (None).")
 
 # Section 14
-def trim_potential_sires(ps,vks):
-    """ Your comments here """
-    return ps
+def trim_potential_sires(ps, vks):
+    trimmed_ps = {}
+    
+    for vampire in ps:
+        original_entries = ps[vampire]
+        if not original_entries:  # Skip if no contacts
+            trimmed_ps[vampire] = None
+            continue
+        
+        new_entries = []
+        for time, contacts in original_entries:
+            # Convert time from day number to time unit index (2*day for PM)
+            time_unit = 2 * time  # PM of the day
+            
+            # Filter contacts based on their status at that time
+            filtered = []
+            for p in contacts:
+                if p != vampire:  # Remove the vampire itself
+                    status = vks[time_unit].get(p, 'U')
+                    # Keep contacts that are not definitely human
+                    if status != 'H':
+                        filtered.append(p)
+            
+            if filtered:  # Only add non-empty groups
+                new_entries.append((time, filtered))
+        
+        # Assign 'None' if all entries were trimmed
+        trimmed_ps[vampire] = new_entries if new_entries else None
+    
+    return trimmed_ps
 
 # Section 15
 def trim_infection_windows(iw,ps):
@@ -535,9 +562,9 @@ def main():
     pretty_print_potential_sires(ps)
 
     # # Section 14. Trim the potential sire structure.
-    # print("********\nSection 14: Trim potential sire structure")
-    # ps = trim_potential_sires(ps,vks)
-    # pretty_print_potential_sires(ps)
+    print("********\nSection 14: Trim potential sire structure")
+    ps = trim_potential_sires(ps,vks)
+    pretty_print_potential_sires(ps)
 
     # # Section 15. Trim the infection windows.
     # print("********\nSection 15: Trim infection windows")
