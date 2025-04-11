@@ -444,10 +444,25 @@ def trim_infection_windows(iw,ps):
     return trimmed_iw
 
 # Section 16
-def update_vks_with_windows(vks,iw):
-    """ Your comments here """
+def update_vks_with_windows(vks, iw):
     changes = 0
-    return (vks,changes)
+    # Make a deep copy to avoid modifying the original
+    new_vks = [vk.copy() for vk in vks]
+
+    for vampire, (start, end) in iw.items():
+        # If turned between day 0 and day 0, they were always a vampire
+        if start == 0 and end == 0:
+            for time_unit in range(len(new_vks)):
+                if new_vks[time_unit].get(vampire, 'U') != 'V':
+                    new_vks[time_unit][vampire] = 'V'
+                    changes += 1
+        else:
+            # From end time onwards, mark as vampire
+            for time_unit in range(end, len(new_vks)):
+                if new_vks[time_unit].get(vampire, 'U') != 'V':
+                    new_vks[time_unit][vampire] = 'V'
+                    changes += 1
+    return (new_vks, changes)
 
 # Section 17; done by professors
 def cyclic_analysis(vks,iw,ps):
@@ -604,12 +619,12 @@ def main():
     iw = trim_infection_windows(iw,ps)
     pretty_print_infection_windows(iw)
 
-    # # Section 16. Update the vk structures with infection windows.
-    # print("********\nSection 16: Update vampire information tables with infection window data")
-    # (vks,changes) = update_vks_with_windows(vks,iw)
-    # pretty_print_vks(vks)
-    # str_s = "" if changes == 1 else "s"
-    # print(f'({changes} change{str_s})')
+    # Section 16. Update the vk structures with infection windows.
+    print("********\nSection 16: Update vampire information tables with infection window data")
+    (vks,changes) = update_vks_with_windows(vks,iw)
+    pretty_print_vks(vks)
+    str_s = "" if changes == 1 else "s"
+    print(f'({changes} change{str_s})')
 
     # # Section 17.  Cyclic analysis for sections 14-16 
     # print("********\nSection 17: Cyclic analysis for sections 14-16")
