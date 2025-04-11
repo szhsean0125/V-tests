@@ -45,7 +45,6 @@ def parse_file(file_name):
     name_list=first_line.split(',')
     participants= [name.strip() for name in name_list]
 
-
     days=int(second_line)
     days_data=[]
     # A set of data for each day
@@ -79,7 +78,6 @@ def parse_file(file_name):
         days_data.append((dict_results, group_list))
     print(days_data)
 
-    
     file.close()    
     return (participants,days_data)
     
@@ -275,16 +273,7 @@ def update_vk_with_contact_group(vk_pre, contacts, vk_post):
 
 # Section 12
 def find_infection_windows(vks):
-    """Find infection windows for vampires.
-    
-    Args:
-        vks: List of vampire knowledge structures
-        
-    Returns:
-        Dictionary mapping vampires to their infection windows (start_time, end_time)
-    """
     infection_windows={}
-    
     # Find all vampires from the last time unit
     last_vk = vks[-1]
     vampires = [name for name, status in last_vk.items() if status == 'V']
